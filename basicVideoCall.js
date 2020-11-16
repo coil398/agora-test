@@ -60,17 +60,12 @@ async function join() {
   client.on("user-unpublished", handleUserUnpublished);
 
   // join a channel and create local tracks, we can use Promise.all to run them concurrently
-  [ options.uid, localTracks.audioTrack, localTracks.videoTrack ] = await Promise.all([
+  [ options.uid, localTracks.audioTrack ] = await Promise.all([
     // join the channel
     client.join(options.appid, options.channel, options.token || null),
     // create local tracks, using microphone and camera
-    AgoraRTC.createMicrophoneAudioTrack(),
-    AgoraRTC.createCameraVideoTrack()
+    AgoraRTC.createMicrophoneAudioTrack()
   ]);
-  
-  // play local video track
-  localTracks.videoTrack.play("local-player");
-  $("#local-player-name").text(`localVideo(${options.uid})`);
 
   // publish local tracks to channel
   await client.publish(Object.values(localTracks));
@@ -105,16 +100,6 @@ async function subscribe(user, mediaType) {
   // subscribe to a remote user
   await client.subscribe(user, mediaType);
   console.log("subscribe success");
-  if (mediaType === 'video') {
-    const player = $(`
-      <div id="player-wrapper-${uid}">
-        <p class="player-name">remoteUser(${uid})</p>
-        <div id="player-${uid}" class="player"></div>
-      </div>
-    `);
-    $("#remote-playerlist").append(player);
-    user.videoTrack.play(`player-${uid}`);
-  }
   if (mediaType === 'audio') {
     user.audioTrack.play();
   }
